@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hoanglongdz | Mega Data Center V21</title>
+    <script src="https://unpkg.com/compromise"></script>
+    <style>
+        :root { --p: #8a2be2; --a: #00d4ff; --bg: #030008; --neon: #00f2ff; --glass: rgba(255, 255, 255, 0.05); }
+        body, html { margin: 0; padding: 0; min-height: 100vh; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; display: flex; justify-content: center; align-items: center; }
+
+        /* --- BACKGROUND MEGA CENTER --- */
+        .universe { position: fixed; width: 100%; height: 100%; z-index: -1; background: radial-gradient(circle at 50% 50%, #110022 0%, #030008 100%); }
+        .grid-layer { position: absolute; width: 200%; height: 200%; background-image: linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px); background-size: 50px 50px; transform: perspective(500px) rotateX(60deg); bottom: -50%; left: -50%; animation: gridMove 10s linear infinite; }
+        @keyframes gridMove { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(50px); } }
+        
+        .star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle var(--d) infinite; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
+
+        /* --- CONTAINER --- */
+        .container { width: 95%; max-width: 550px; background: var(--glass); backdrop-filter: blur(30px); padding: 35px; border-radius: 40px; border: 1px solid rgba(0, 242, 255, 0.2); box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 242, 255, 0.1); position: relative; z-index: 10; }
+        
+        .mega-header { font-size: 1.5rem; letter-spacing: 5px; color: var(--neon); text-shadow: 0 0 10px var(--neon); margin-bottom: 25px; text-transform: uppercase; }
+
+        /* --- MEGA VAULT (TRUNG TÂM DỮ LIỆU) --- */
+        .data-vault { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .data-card { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); text-align: left; }
+        .data-card label { font-size: 0.65rem; color: #888; display: block; text-transform: uppercase; }
+        .data-card span { font-size: 1.1rem; color: var(--neon); font-weight: bold; }
+
+        input, select, textarea { width: 100%; padding: 14px; margin: 10px 0; background: rgba(0,0,0,0.7); border: 1px solid #333; border-radius: 12px; color: #fff; font-size: 0.9rem; outline: none; box-sizing: border-box; }
+        button { width: 100%; padding: 16px; background: linear-gradient(45deg, var(--p), #4800ff); border: none; border-radius: 12px; color: #fff; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        button:hover { filter: brightness(1.3); transform: translateY(-2px); box-shadow: 0 5px 20px rgba(138, 43, 226, 0.5); }
+
+        .meaning-box { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; border-left: 5px solid var(--neon); margin-top: 15px; text-align: left; }
+        #memeArea { width: 100%; height: 230px; margin-top: 15px; border-radius: 20px; background-size: cover; background-position: center; border: 1px solid #444; display: none; }
+        
+        .hidden { display: none; }
+        .tab-btn { background: #222; font-size: 0.7rem; padding: 8px; flex: 1; }
+        .active-tab { background: var(--p) !important; }
+    </style>
+</head>
+<body>
+    <div class="universe" id="stars"></div>
+    <div class="grid-layer"></div>
+
+    <div class="container">
+        <div class="mega-header">MEGA CENTER</div>
+
+        <div id="step-auth">
+            <div style="display:flex; gap:10px; margin-bottom:15px">
+                <button id="btnTabReg" class="tab-btn active-tab" onclick="switchAuth('reg')">TẠO MỚI</button>
+                <button id="btnTabImport" class="tab-btn" onclick="switchAuth('import')">NHẬP DỮ LIỆU</button>
+            </div>
+
+            <div id="box-reg">
+                <input type="text" id="regName" placeholder="Tên thực thể (Username)">
+                <input type="email" id="regEmail" placeholder="Gmail đăng ký">
+                <input type="password" id="regPass" placeholder="Mật khẩu bảo mật">
+                <button onclick="register()">KHỞI TẠO TÀI KHOẢN</button>
+            </div>
+
+            <div id="box-import" class="hidden">
+                <p style="font-size: 0.75rem; color: #aaa;">Tải file .json từ máy cũ để đồng bộ trung tâm dữ liệu.</p>
+                <input type="file" id="importFile" onchange="importData()">
+                <p style="font-size: 0.65rem; color: var(--neon); margin-top: 10px;">*Tài khoản máy cũ sẽ được khôi phục 100%</p>
+            </div>
+        </div>
+
+        <div id="step-ai" class="hidden">
+            <div class="data-vault">
+                <div class="data-card"><label>THỰC THỂ</label><span id="v-name">...</span></div>
+                <div class="data-card"><label>STREAK</label><span id="v-streak">0 Ngày</span></div>
+                <div class="data-card"><label>DỮ LIỆU DỊCH</label><span id="v-count">0 Từ</span></div>
+                <div class="data-card"><label>CẤP ĐỘ</label><span id="v-level">TÂN BINH</span></div>
+            </div>
+
+            <div style="display:flex; gap:10px">
+                <select id="fromL"><option value="en-US">English</option><option value="vi-VN">Tiếng Việt</option></select>
+                <select id="toL"><option value="vi-VN">Tiếng Việt</option><option value="en-US">English</option></select>
+            </div>
+            <textarea id="source" placeholder="Nhập dữ liệu cần phân tích..." rows="3"></textarea>
+            <button onclick="megaProcess()" id="btnRun">TRUY XUẤT ĐA NGHĨA</button>
+
+            <div id="resultArea" class="hidden">
+                <div class="meaning-box">
+                    <small id="ipaText" style="color:var(--neon); display:block; margin-bottom:5px">/ Reading... /</small>
+                    <div id="meaningsList"></div>
+                </div>
+                <div id="memeArea"></div>
+                <button onclick="speak()" style="background:#333; margin-top:10px">🔊 PHÁT ÂM CHUẨN</button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px">
+                <button onclick="exportData()" style="background:#111; font-size:0.6rem">SAO LƯU DATA</button>
+                <button onclick="logout()" style="background:#111; font-size:0.6rem; color:red">LOGOUT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- VŨ TRỤ ---
+        for(let i=0; i<100; i++) {
+            let s = document.createElement('div'); s.className = 'star';
+            s.style.width = s.style.height = Math.random()*3+'px';
+            s.style.left = Math.random()*100+'vw'; s.style.top = Math.random()*100+'vh';
+            s.style.setProperty('--d', (Math.random()*4+1)+'s'); document.getElementById('stars').appendChild(s);
+        }
+
+        // --- HỆ THỐNG AUTH ---
+        window.onload = () => {
+            if(localStorage.getItem('user_email')) {
+                loadVault();
+                nav('step-ai');
+            }
+        };
+
+        function nav(id) {
+            document.querySelectorAll('.container > div:not(.mega-header)').forEach(d => d.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function switchAuth(type) {
+            if(type === 'reg') {
+                document.getElementById('box-reg').classList.remove('hidden');
+                document.getElementById('box-import').classList.add('hidden');
+                document.getElementById('btnTabReg').classList.add('active-tab');
+                document.getElementById('btnTabImport').classList.remove('active-tab');
+            } else {
+                document.getElementById('box-reg').classList.add('hidden');
+                document.getElementById('box-import').classList.remove('hidden');
+                document.getElementById('btnTabReg').classList.remove('active-tab');
+                document.getElementById('btnTabImport').classList.add('active-tab');
+            }
+        }
+
+        function register() {
+            const n = document.getElementById('regName').value;
+            const e = document.getElementById('regEmail').value;
+            const p = document.getElementById('regPass').value;
+            if(n && e.includes('@') && p.length >= 4) {
+                localStorage.setItem('user_name', n);
+                localStorage.setItem('user_email', e);
+                localStorage.setItem('user_pass', p);
+                localStorage.setItem('user_streak', 1);
+                localStorage.setItem('user_count', 0);
+                alert("Khởi tạo thực thể thành công!");
+                loadVault();
+                nav('step-ai');
+            } else { alert("Vui lòng điền đủ thông tin!"); }
+        }
+
+        // --- MEGA DATA CORE ---
+        function loadVault() {
+            document.getElementById('v-name').innerText = localStorage.getItem('user_name') || 'User';
+            document.getElementById('v-streak').innerText = (localStorage.getItem('user_streak') || 0) + ' Ngày';
+            document.getElementById('v-count').innerText = (localStorage.getItem('user_count') || 0) + ' Từ';
+            
+            const count = parseInt(localStorage.getItem('user_count') || 0);
+            let lv = "TÂN BINH";
+            if(count > 50) lv = "CHUYÊN GIA";
+            if(count > 200) lv = "BẬC THẦY";
+            document.getElementById('v-level').innerText = lv;
+        }
+
+        async function megaProcess() {
+            const text = document.getElementById('source').value;
+            if(!text) return;
+            document.getElementById('btnRun').innerText = "TRUY XUẤT...";
+
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${document.getElementById('fromL').value}|${document.getElementById('toL').value}`);
+                const data = await res.json();
+                
+                document.getElementById('resultArea').classList.remove('hidden');
+                const list = document.getElementById('meaningsList');
+                list.innerHTML = `<div style="margin-bottom:10px"><b>Nghĩa chính:</b> ${data.responseData.translatedText}</div>`;
+                
+                if(data.matches) {
+                    data.matches.slice(1, 4).forEach(m => {
+                        list.innerHTML += `<div style="font-size:0.8rem; color:#aaa; margin-top:5px; border-top:1px solid #222; padding-top:5px">• ${m.translation}</div>`;
+                    });
+                }
+
+                // Tăng bộ đếm dữ liệu
+                let c = parseInt(localStorage.getItem('user_count') || 0);
+                c += text.split(' ').length;
+                localStorage.setItem('user_count', c);
+                loadVault();
+
+                // Meme
+                const noun = nlp(text).nouns().first().out('text') || "future";
+                const meme = document.getElementById('memeArea');
+                meme.style.display = "block";
+                meme.style.backgroundImage = `url('https://loremflickr.com/400/300/${noun},meme/all')`;
+
+            } catch(e) {}
+            document.getElementById('btnRun').innerText = "TRUY XUẤT ĐA NGHĨA";
+        }
+
+        function speak() {
+            const synth = window.speechSynthesis;
+            const utter = new SpeechSynthesisUtterance(document.getElementById('meaningsList').innerText);
+            utter.lang = document.getElementById('toL').value;
+            synth.speak(utter);
+        }
+
+        function exportData() {
+            const data = JSON.stringify(localStorage);
+            const blob = new Blob([data], {type: "application/json"});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `MegaVault_${localStorage.getItem('user_name')}.json`;
+            a.click();
+        }
+
+        function importData() {
+            const file = document.getElementById('importFile').files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = JSON.parse(e.target.result);
+                Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+                alert("Dữ liệu trung tâm đã được đồng bộ!");
+                location.reload();
+            };
+            reader.readAsText(file);
+        }
+
+        function logout() { if(confirm("Đăng xuất khỏi trung tâm dữ liệu?")) { localStorage.clear(); location.reload(); } }
+    </script>
+</body>
+</html>
